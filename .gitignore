@@ -5,7 +5,9 @@ __pycache__/
 
 # C extensions
 *.so
-
+*.wav
+*.mp3
+*.TextGrid
 # Distribution / packaging
 .Python
 build/
