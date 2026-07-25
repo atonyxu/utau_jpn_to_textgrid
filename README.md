@@ -40,6 +40,12 @@ Install dependencies:
 pip install numpy textgrid
 ```
 
+For pitch shifting (`pitch_shift_dataset.py`), additional dependencies are needed:
+
+```bash
+pip install torch librosa soundfile
+```
+
 ## Usage
 
 ### Basic Usage
@@ -210,6 +216,60 @@ Phoneme intervals are constructed by:
 3. For each syllable: placing a consonant interval before the vowel onset and a vowel interval from onset to the next boundary
 4. Detecting the actual sound end via energy analysis for the trailing silence
 5. Writing contiguous, non-overlapping intervals to a Praat TextGrid file
+
+## Pitch Shift Dataset
+
+`pitch_shift_dataset.py` uses [HiFiGAN](https://github.com/jik876/hifi-gan) + RMVPE to pitch-shift wav files in a dataset subfolder and automatically copies/renames the corresponding TextGrid files.
+
+### Requirements
+
+Additional dependencies (on top of the base requirements):
+
+```bash
+pip install torch librosa soundfile
+```
+
+Pre-trained model weights (auto-downloaded on first run):
+
+- `models/rmvpe.pt` — F0 extraction model
+- `models/pc-nsf-hifigan.ckpt` — HiFi-GAN vocoder
+
+### Usage
+
+```bash
+python pitch_shift_dataset.py -i dataset/aro_whisper -s +4 -3 -g "*_53.wav" -d cuda
+```
+
+### Command-Line Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `-i`, `--input` | *(required)* | Dataset subfolder containing `wav/` and `TextGrid/` |
+| `-s`, `--shift` | *(required)* | Semitone shifts (multiple values allowed), e.g. `+4 -3 +2` |
+| `-g`, `--glob` | `*.wav` | Glob pattern for wav files (relative to `wav/`) |
+| `-d`, `--device` | `auto` | Device: `auto` / `cuda` / `cpu` |
+
+### Example
+
+```bash
+python pitch_shift_dataset.py -i dataset/aro_whisper -s +4 -3 -g "*_53.wav"
+```
+
+After processing, the source directory will contain new pitch-shifted wav files and matching TextGrid copies (originals are untouched):
+
+```
+dataset/aro_whisper/
+├── wav/
+│   ├── 0001_53.wav          (original)
+│   ├── 0001_53_+4.wav       (new — pitched up 4 semitones)
+│   ├── 0001_53_-3.wav       (new — pitched down 3 semitones)
+│   └── ...
+└── TextGrid/
+    ├── 0001_53.TextGrid      (original)
+    ├── 0001_53_+4.TextGrid   (copied from 0001_53.TextGrid)
+    ├── 0001_53_-3.TextGrid   (copied from 0001_53.TextGrid)
+    └── ...
+```
 
 ## Notes
 
